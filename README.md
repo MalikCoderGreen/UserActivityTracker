@@ -141,6 +141,9 @@ Access the dashboards:
 - **Elasticsearch**: http://localhost:9200 - Query data directly
 - **Kibana**: http://localhost:5601 - Create visualizations and dashboards
 
+## Dashboards
+Below is a sample dashboard of the user event data in Kibana.
+![img.png](img.png)
 ## 🔍 Sample Queries
 
 **Get all events for a user:**
