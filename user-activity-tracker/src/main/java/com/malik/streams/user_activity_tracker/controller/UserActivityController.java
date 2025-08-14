@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -152,7 +153,7 @@ public class UserActivityController {
      */
     private void enrichEvent(UserActivityEvent event, HttpServletRequest request) {
         if (event.getTimestamp() == null) {
-            event.setTimestamp(LocalDateTime.now());
+            event.setTimestamp(Instant.now());
         }
 
         if (event.getUserAgent() == null) {

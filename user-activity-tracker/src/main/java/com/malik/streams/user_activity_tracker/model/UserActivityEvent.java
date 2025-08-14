@@ -3,6 +3,8 @@ package com.malik.streams.user_activity_tracker.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -16,7 +18,7 @@ public class UserActivityEvent {
 
     @NotNull(message = "Timestamp is required")
     //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 
     private String page;        // Current page/route
     private String elementId;   // Button ID, link ID, etc.
@@ -26,7 +28,7 @@ public class UserActivityEvent {
 
     // Constructors
     public UserActivityEvent() {
-        this.timestamp = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+        this.timestamp = Instant.now();
 
     }
 
@@ -34,7 +36,7 @@ public class UserActivityEvent {
         this.userId = userId;
         this.eventType = eventType;
         this.page = page;
-        this.timestamp = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+        this.timestamp = Instant.now();
     }
 
     // Getters and Setters
@@ -44,8 +46,8 @@ public class UserActivityEvent {
     public String getEventType() { return eventType; }
     public void setEventType(String eventType) { this.eventType = eventType; }
 
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public Instant getTimestamp() { return timestamp; }
+    public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
 
     public String getPage() { return page; }
     public void setPage(String page) { this.page = page; }

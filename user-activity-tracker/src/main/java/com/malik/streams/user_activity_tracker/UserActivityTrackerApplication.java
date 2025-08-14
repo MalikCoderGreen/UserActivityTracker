@@ -7,8 +7,5 @@ public class UserActivityTrackerApplication {
 
 	public static void main(String[] args) throws InterruptedException {
 		SpringApplication.run(UserActivityTrackerApplication.class, args);
-
-		//WikipediaChangeProducer.produce("wikipedia.recentchange");
 	}
-
 }
