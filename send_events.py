@@ -27,21 +27,37 @@ def now_iso8601_z() -> str:
     # Millisecond precision, explicit Z suffix
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
-def make_event():
+def random_ipv4():
+    return ".".join(str(random.randint(0, 255)) for _ in range(4))
+
+def is_prime(n):
+    if n < 2:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+
+    return True
+
+def make_event(prime_check):
     user_id = random.randint(1, 5000)
     event_type = random.choice(EVENT_TYPES)
     page = random.choice(PAGES)
     element_id = random.choice(ELEMENT_IDS)
     session_id = random.choice(SESSION_IDS)
-
     timestamp = now_epoch_millis() if USE_EPOCH_MILLIS else now_iso8601_z()
 
+    # Using prime numbers to correspond to bad data. If the number is a prime, then the data will purposefully-
+    # be made into an unacceptable state that will cause the message to be sent to the user-activity-dlq in Kafka.
+    user_id = str(user_id) if not is_prime(prime_check) else user_id
+    print(type(user_id))
     return {
-        "userId": str(user_id),
+        "userId": user_id,
         "eventType": event_type,
         "page": page,
         "elementId": element_id,
         "sessionId": session_id,
+        "ipAddress": random_ipv4(),
         # sprinkle in extra metadata
         "meta": {
             "referrer": random.choice(["direct", "email", "ad", "search"]),
@@ -60,12 +76,14 @@ def send_event(evt):
 if __name__ == "__main__":
     try:
         count = last_count = 0
+
         while True:
+            prime_check = random.randint(1, 100)
             if count > last_count + 50:
                 logger.info(f"Sent {count} events to Kafka")
                 last_count = count
 
-            evt = make_event()
+            evt = make_event(prime_check)
             send_event(evt)
             time.sleep(random.uniform(0.1, 0.6))  # small jitter
             count += 1
