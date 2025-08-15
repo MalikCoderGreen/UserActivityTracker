@@ -3,6 +3,7 @@ package com.malik.streams.user_activity_tracker.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.malik.streams.user_activity_tracker.metrics.EventMetrics;
 import com.malik.streams.user_activity_tracker.model.UserActivityEvent;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -25,6 +26,7 @@ public class UserActivityController {
 
     private static final Logger log = LoggerFactory.getLogger(UserActivityController.class);
     private static final String USER_ACTIVITY_TOPIC = "user-activity";
+    private final EventMetrics metrics;
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
@@ -32,9 +34,10 @@ public class UserActivityController {
 
     private final ObjectMapper objectMapper;
 
-    public UserActivityController() {
+    public UserActivityController(EventMetrics metrics) {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
+        this.metrics = metrics;
     }
 
     /**
@@ -45,8 +48,6 @@ public class UserActivityController {
     public ResponseEntity<Map<String, Object>> trackClick(
             @Valid @RequestBody UserActivityEvent event,
             HttpServletRequest request) {
-
-        event.setEventType("click");
         return processEvent(event, request);
     }
 
@@ -64,7 +65,7 @@ public class UserActivityController {
             @Valid @RequestBody UserActivityEvent event,
             HttpServletRequest request) {
 
-        event.setEventType("view");
+        //event.setEventType("view");
         return processEvent(event, request);
     }
 
@@ -77,7 +78,7 @@ public class UserActivityController {
             @Valid @RequestBody UserActivityEvent event,
             HttpServletRequest request) {
 
-        event.setEventType("scroll");
+        //event.setEventType("scroll");
         return processEvent(event, request);
     }
 
@@ -118,19 +119,20 @@ public class UserActivityController {
             String eventJson = objectMapper.writeValueAsString(event);
 
             // Send to Kafka using userId as partition key for ordering
-            kafkaTemplate.send(USER_ACTIVITY_TOPIC, event.getUserId(), eventJson)
+            kafkaTemplate.send(USER_ACTIVITY_TOPIC, event.userId(), eventJson)
                     .whenComplete((result, ex) -> {
                         if (ex == null) {
                             log.info("Event sent successfully: user={}, type={}, page={}",
-                                    event.getUserId(), event.getEventType(), event.getPage());
+                                    event.userId(), event.eventType(), event.page());
                         } else {
                             log.error("Failed to send event to Kafka", ex);
                         }
                     });
 
+            metrics.incrementConsumed();
             response.put("status", "success");
             response.put("message", "Event tracked successfully");
-            response.put("eventId", event.getUserId() + "-" + event.getTimestamp());
+            response.put("eventId", event.userId() + "-" + event.timestamp());
 
             return ResponseEntity.ok(response);
 
@@ -152,23 +154,24 @@ public class UserActivityController {
      * Enrich event with request metadata
      */
     private void enrichEvent(UserActivityEvent event, HttpServletRequest request) {
-        if (event.getTimestamp() == null) {
-            event.setTimestamp(Instant.now());
-        }
+//        if (event.timestamp() == null) {
+//            event.setTimestamp(Instant.now());
+//        }
 
-        if (event.getUserAgent() == null) {
-            event.setUserAgent(request.getHeader("User-Agent"));
-        }
-
-        if (event.getIpAddress() == null) {
-            String ipAddress = request.getHeader("X-Forwarded-For");
-            if (ipAddress == null || ipAddress.isEmpty()) {
-                ipAddress = request.getHeader("X-Real-IP");
-            }
-            if (ipAddress == null || ipAddress.isEmpty()) {
-                ipAddress = request.getRemoteAddr();
-            }
-            event.setIpAddress(ipAddress);
-        }
+//        if (event.() == null) {
+//            event.setUserAgent(request.getHeader("User-Agent"));
+//        }
+//
+//        if (event.getIpAddress() == null) {
+//            String ipAddress = request.getHeader("X-Forwarded-For");
+//            if (ipAddress == null || ipAddress.isEmpty()) {
+//                ipAddress = request.getHeader("X-Real-IP");
+//            }
+//            if (ipAddress == null || ipAddress.isEmpty()) {
+//                ipAddress = request.getRemoteAddr();
+//            }
+//            event.setIpAddress(ipAddress);
+        //}
     }
+
 }
