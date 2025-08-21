@@ -144,6 +144,8 @@ Access the dashboards:
 ## Dashboards
 Below is a sample dashboard of the user event data in Kibana.
 ![img.png](img.png)
+Dashboards created in Grafana for user-activity index in ElasticSearch.
+![img_1.png](img_1.png)
 ## 🔍 Sample Queries
 
 **Get all events for a user:**
