@@ -60,6 +60,7 @@ services:
       - xpack.security.enabled=false         # local only
       - bootstrap.memory_lock=true
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - "path.data=/usr/share/elasticsearch/data"
     ulimits:
       memlock:
         soft: -1
@@ -72,6 +73,12 @@ services:
       timeout: 10s
       retries: 20
 
+    networks:
+      - monitor-net
+
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -82,8 +89,11 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
+      - elasticsearch
     networks:
       - monitor-net
+    volumes:
+      - grafana_data:/var/lib/grafana
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.13.4
@@ -94,6 +104,9 @@ services:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
       - "5601:5601"
+
+    networks:
+      - monitor-net
 
   # Create Kafka topics on startup
   kafka-setup:
@@ -128,10 +141,10 @@ services:
     networks:
       - monitor-net
 
-
 volumes:
+  es_data:
+  grafana_data:
   kafka_data:
-  opensearch_data:
 
 networks:
   monitor-net:
